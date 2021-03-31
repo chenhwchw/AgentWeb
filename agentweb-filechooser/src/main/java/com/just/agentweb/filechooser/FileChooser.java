@@ -562,6 +562,24 @@ public class FileChooser {
             return;
         }
         if (!isCamera) {
+
+            if (Build.VERSION.SDK_INT >= 30) {
+                // Android 11 不知道为什么不能支持显示图片
+                // 解决方案：复制文件到应用程序存储
+                if (datas != null && datas.length > 0) {
+                    Uri data = datas[0];
+                    try {
+                        ContentResolver contentResolver = mActivity.getContentResolver();
+                        InputStream inputStream = contentResolver.openInputStream(data);
+                        String nice = mActivity.getExternalCacheDir().getAbsolutePath() +"/"+System.currentTimeMillis()+  ".jpg";
+                        Files.copy(inputStream, Paths.get(nice));
+                        mUriValueCallbacks.onReceiveValue(new Uri[]{Uri.fromFile(new File(nice))});
+                        return;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
             mUriValueCallbacks.onReceiveValue(datas == null ? new Uri[]{} : datas);
             return;
         }
